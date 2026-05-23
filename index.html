@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎌 Аниме Квиз — Ведущий</title>
+<style>
+:root {
+  --bg: #0d0d1f;
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  --green: #10b981;
+  --red: #ef4444;
+  --orange: #f97316;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: rgba(255,255,255,0.1);
+  --card: rgba(255,255,255,0.05);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(139,92,246,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(236,72,153,0.15) 0%, transparent 60%);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: var(--text);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 30px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.screen { display: none; width: 100%; max-width: 900px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; animation: fadein 0.35s ease; }
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════
+   SHARED
+══════════════════════════════════ */
+.logo {
+  font-size: 80px;
+  filter: drop-shadow(0 0 30px rgba(139,92,246,0.6));
+  margin-bottom: 4px;
+}
+
+h1 {
+  font-size: 52px; font-weight: 900; letter-spacing: -2px;
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.screen-subtitle {
+  font-size: 20px; color: var(--muted); line-height: 1.6; max-width: 520px;
+  text-align: center;
+}
+
+.nav-row {
+  width: 100%;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 4px;
+}
+
+.screen-title {
+  font-size: 26px; font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.btn-back {
+  padding: 10px 22px; border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: var(--muted); font-size: 15px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background .2s, color .2s; flex-shrink: 0;
+}
+.btn-back:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+.screen-actions {
+  display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+}
+
+.btn-primary {
+  padding: 16px 44px; border-radius: 13px; border: none;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: #fff; font-size: 18px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: opacity .2s, transform .2s;
+  box-shadow: 0 6px 28px rgba(139,92,246,0.35);
+}
+.btn-primary:hover { opacity: .88; transform: translateY(-2px); }
+
+.btn-outline {
+  padding: 15px 32px; border-radius: 13px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: var(--text); font-size: 16px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background .2s, border-color .2s;
+}
+.btn-outline:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.35); }
+
+/* ══════════════════════════════════
+   HOME SCREEN
+══════════════════════════════════ */
+#homeScreen { text-align: center; gap: 28px; padding-top: 20px; }
+
+.host-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; }
+
+.host-card {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 28px 44px; cursor: pointer; transition: transform .2s, border-color .2s, background .2s;
+  text-align: center; min-width: 200px;
+}
+.host-card:hover { transform: translateY(-5px); border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.09); }
+.host-emoji { font-size: 52px; margin-bottom: 14px; }
+.host-name  { font-size: 22px; font-weight: 800; }
+.host-sub   { color: var(--muted); font-size: 14px; margin-top: 5px; }
+
+.btn-ghost {
+  padding: 12px 28px; border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted); font-size: 15px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background .2s, color .2s;
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.09); color: var(--text); }
+
+/* ══════════════════════════════════
+   STAGE SELECT SCREEN
+══════════════════════════════════ */
+#stageScreen { gap: 20px; padding-top: 12px; }
+
+.stage-grid { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+
+.stage-card {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 16px;
+  padding: 20px 26px; cursor: pointer;
+  transition: transform .2s, border-color .2s, background .2s;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.stage-card:hover { transform: translateX(5px); border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.07); }
+.stage-name  { font-size: 20px; font-weight: 800; }
+.stage-meta  { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.stage-arrow { font-size: 22px; color: var(--muted); }
+
+/* Multiplayer panel on stage screen */
+.mp-panel {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid rgba(139,92,246,0.25);
+  border-radius: 18px;
+  padding: 20px 22px;
+}
+
+.mp-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.mp-title { font-size: 16px; font-weight: 800; color: #c4b5fd; }
+.mp-count {
+  background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.5);
+  color: #c4b5fd; font-size: 13px; font-weight: 700;
+  padding: 3px 12px; border-radius: 99px;
+}
+
+.mp-body { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+
+.qr-box {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  width: 116px; height: 116px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.qr-box canvas, .qr-box img { width: 100px !important; height: 100px !important; }
+
+.mp-info { flex: 1; min-width: 160px; }
+.mp-url {
+  font-size: 12px; color: var(--muted); word-break: break-all;
+  margin-bottom: 12px; line-height: 1.5;
+}
+.mp-url strong { color: #c4b5fd; }
+.mp-players { display: flex; flex-wrap: wrap; gap: 8px; }
+.player-chip {
+  background: rgba(139,92,246,0.18); border: 1px solid rgba(139,92,246,0.4);
+  color: #c4b5fd; font-size: 13px; font-weight: 600;
+  padding: 4px 14px; border-radius: 99px;
+}
+.mp-empty { font-size: 13px; color: var(--muted); }
+
+/* ══════════════════════════════════
+   QUIZ SCREEN
+══════════════════════════════════ */
+#quizScreen { gap: 0; justify-content: space-between; min-height: calc(100vh - 60px); }
+
+.top-bar {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 28px; gap: 16px;
+}
+.q-counter { font-size: 15px; font-weight: 700; color: var(--muted); letter-spacing: .5px; }
+.prog-bar  { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); border-radius: 99px; transition: width 0.5s ease; }
+.anime-tag {
+  background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(236,72,153,0.2));
+  border: 1px solid rgba(139,92,246,0.45);
+  color: #c4b5fd; font-size: 13px; font-weight: 700;
+  letter-spacing: .5px; padding: 6px 16px; border-radius: 99px;
+  text-transform: uppercase; white-space: nowrap;
+}
+
+.q-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; padding: 20px 0; }
+.q-text {
+  font-size: clamp(24px, 4vw, 38px); font-weight: 800; line-height: 1.5;
+  text-align: center; white-space: pre-line; max-width: 820px;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+}
+
+.bottom-bar {
+  width: 100%; display: flex; align-items: center; justify-content: center;
+  padding-top: 28px; gap: 24px;
+}
+
+/* TIMER */
+.timer-wrap { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+.timer-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+.t-bg  { stroke: rgba(255,255,255,0.08); }
+.t-ring { stroke: var(--purple); stroke-dasharray: 289.02; stroke-dashoffset: 0; transition: stroke 0.4s; }
+.timer-num {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 38px; font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+.timer-wrap.urgent .timer-num { animation: pulse 0.5s ease infinite; }
+.timer-wrap.urgent .t-ring    { stroke: var(--red) !important; }
+
+.btn-quiz-nav {
+  padding: 14px 28px; border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: var(--muted); font-size: 16px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: background .2s, color .2s; min-width: 110px;
+}
+.btn-quiz-nav:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+.btn-quiz-nav:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+
+/* FLASH */
+.flash {
+  display: none; position: fixed; inset: 0;
+  background: rgba(239,68,68,0.15); pointer-events: none; z-index: 99;
+  animation: flashAnim .45s ease;
+}
+@keyframes flashAnim { from { opacity:1; } to { opacity:0; } }
+
+/* ══════════════════════════════════
+   END SCREEN
+══════════════════════════════════ */
+#endScreen { text-align: center; gap: 28px; padding-top: 20px; }
+#endScreen h2 {
+  font-size: 44px; font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* ══════════════════════════════════
+   ANSWERS SCREEN
+══════════════════════════════════ */
+#answersScreen { gap: 24px; padding: 12px 0 40px; }
+
+.answers-header { width: 100%; }
+.answers-header h2 {
+  font-size: 30px; font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 14px;
+}
+.stage-tabs { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+.stage-tab {
+  padding: 9px 22px; border-radius: 99px;
+  border: 1.5px solid rgba(255,255,255,0.14); background: transparent;
+  color: var(--muted); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+  transition: all .2s;
+}
+.stage-tab:hover { border-color: rgba(139,92,246,0.5); color: #c4b5fd; }
+.stage-tab.active { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.6); color: #c4b5fd; }
+
+.answers-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 14px; width: 100%;
+}
+.ans-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; }
+.ans-top  { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ans-num  {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(236,72,153,0.25));
+  border: 1px solid rgba(139,92,246,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #c4b5fd; flex-shrink: 0;
+}
+.ans-anime  { font-size: 12px; font-weight: 700; color: #c4b5fd; text-transform: uppercase; letter-spacing: .4px; }
+.ans-q      { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; white-space: pre-line; }
+.ans-answer {
+  display: inline-block; padding: 6px 14px; border-radius: 8px;
+  background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35);
+  color: #6ee7b7; font-size: 15px; font-weight: 700;
+}
+
+/* ══════════════════════════════════
+   SCORE TABLE SCREEN
+══════════════════════════════════ */
+#tableScreen { gap: 20px; padding: 12px 0 40px; }
+
+.table-scroll { width: 100%; overflow-x: auto; border-radius: 14px; }
+
+.score-table {
+  width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap;
+}
+.score-table th {
+  background: rgba(139,92,246,0.18); color: #c4b5fd; font-weight: 700;
+  padding: 10px 14px; border: 1px solid rgba(139,92,246,0.25); text-align: left;
+}
+.score-table th.q-header { max-width: 120px; white-space: normal; word-break: break-word; font-size: 11px; line-height: 1.4; }
+.score-table td { padding: 9px 14px; border: 1px solid rgba(255,255,255,0.07); vertical-align: top; }
+.score-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.score-table .correct-row td { background: rgba(16,185,129,0.08); color: #6ee7b7; font-weight: 600; }
+.score-table .player-cell { font-weight: 700; color: var(--text); }
+.score-table .answer-cell { color: var(--muted); }
+.score-table .empty-cell  { color: rgba(255,255,255,0.18); }
+
+.table-meta { font-size: 14px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  h1 { font-size: 36px; }
+  .q-text { font-size: 22px; }
+  .timer-num { font-size: 30px; }
+  .timer-wrap { width: 90px; height: 90px; }
+  .answers-grid { grid-template-columns: 1fr; }
+  .btn-primary, .btn-outline { padding: 14px 24px; font-size: 15px; }
+  .mp-body { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="flash" id="flashEl"></div>
+
+<!-- ══ HOME ══ -->
+<div class="screen active" id="homeScreen">
+  <div class="logo">🎌</div>
+  <h1>Аниме Квиз</h1>
+  <p class="screen-subtitle">Выберите чей квиз запустить</p>
+  <div class="host-grid" id="hostGrid"></div>
+  <button class="btn-ghost" onclick="openAnswersScreen(null, null)">📋 Посмотреть ответы</button>
+</div>
+
+<!-- ══ STAGE SELECT ══ -->
+<div class="screen" id="stageScreen">
+  <div class="nav-row">
+    <button class="btn-back" onclick="showScreen('homeScreen')">← Назад</button>
+    <div class="screen-title" id="stageScreenTitle"></div>
+  </div>
+  <p class="screen-subtitle" style="text-align:left;align-self:flex-start;">Выберите раунд</p>
+  <div class="stage-grid" id="stageGrid"></div>
+
+  <!-- Multiplayer panel -->
+  <div class="mp-panel">
+    <div class="mp-header">
+      <span class="mp-title">📱 Игроки онлайн</span>
+      <span class="mp-count" id="mpCount">0</span>
+    </div>
+    <div class="mp-body">
+      <div class="qr-box" id="qrBox"></div>
+      <div class="mp-info">
+        <div class="mp-url">Ссылка для игроков:<br><strong id="mpUrl"></strong></div>
+        <div class="mp-players" id="mpPlayers">
+          <span class="mp-empty">Пока никого нет…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div class="screen" id="quizScreen">
+  <div class="top-bar">
+    <div class="q-counter" id="qCounter">1 / 11</div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="anime-tag" id="animeTag"></div>
+  </div>
+  <div class="q-area">
+    <div class="q-text" id="qText"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-quiz-nav" id="btnBack" onclick="goBackQ()">← Назад</button>
+    <div class="timer-wrap" id="timerWrap">
+      <svg viewBox="0 0 100 100" width="120" height="120">
+        <circle class="t-bg"   cx="50" cy="50" r="46" fill="none" stroke-width="5"/>
+        <circle class="t-ring" id="tRing" cx="50" cy="50" r="46" fill="none" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+      <div class="timer-num" id="timerNum">20</div>
+    </div>
+    <button class="btn-quiz-nav" onclick="skipQuestion()">→ Далее</button>
+  </div>
+</div>
+
+<!-- ══ END ══ -->
+<div class="screen" id="endScreen">
+  <div class="logo">🏁</div>
+  <h2 id="endTitle">Раунд завершён!</h2>
+  <p class="screen-subtitle">Подсчитывайте очки 🎉</p>
+  <div class="screen-actions">
+    <button class="btn-primary" onclick="loadScoreTable()">📊 Таблица ответов игроков</button>
+    <button class="btn-outline" onclick="openAnswersFromEnd()">📋 Правильные ответы</button>
+    <button class="btn-outline" onclick="goToStageScreen()">Другой раунд</button>
+    <button class="btn-outline" onclick="showScreen('homeScreen')">На главную</button>
+  </div>
+</div>
+
+<!-- ══ SCORE TABLE ══ -->
+<div class="screen" id="tableScreen">
+  <div class="nav-row">
+    <button class="btn-back" onclick="showScreen('endScreen')">← Назад</button>
+    <div class="screen-title">Таблица ответов</div>
+  </div>
+  <p class="table-meta" id="tableMeta"></p>
+  <div class="table-scroll">
+    <table class="score-table" id="scoreTable"></table>
+  </div>
+  <div class="screen-actions" style="margin-top:8px;">
+    <button class="btn-outline" onclick="openAnswersFromEnd()">📋 Правильные ответы</button>
+    <button class="btn-outline" onclick="goToStageScreen()">Другой раунд</button>
+  </div>
+</div>
+
+<!-- ══ ANSWERS ══ -->
+<div class="screen" id="answersScreen">
+  <div class="nav-row">
+    <button class="btn-back" onclick="showScreen('homeScreen')">← Назад</button>
+    <div class="screen-title">Правильные ответы</div>
+  </div>
+  <div class="answers-header">
+    <div class="stage-tabs" id="answersStageTabs"></div>
+  </div>
+  <div class="answers-grid" id="answersGrid"></div>
+</div>
+
+<!-- Firebase + QRCode -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  Firebase config
+// ═══════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyA4Tky1LeabkKZf2qKodepAuU-Szku58Tg",
+  authDomain:        "anime-ca12d.firebaseapp.com",
+  databaseURL:       "https://anime-ca12d-default-rtdb.firebaseio.com",
+  projectId:         "anime-ca12d",
+  storageBucket:     "anime-ca12d.firebasestorage.app",
+  messagingSenderId: "855385654507",
+  appId:             "1:855385654507:web:faf03ef219bc14676aeaae"
+};
+
+// Firebase инициализируется в try-catch — квиз работает даже без сети
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+} catch(e) {
+  console.warn('Firebase недоступен, мультиплеер отключён:', e);
+}
+
+// Безопасная обёртка — не падает если db == null
+function dbSet(path, val)    { if (db) db.ref(path).set(val); }
+function dbUpdate(path, val) { if (db) db.ref(path).update(val); }
+function dbRemove(path)      { if (db) db.ref(path).remove(); }
+function dbOnce(path, cb)    { if (db) db.ref(path).once('value', cb); else cb({ val: () => null }); }
+function dbOn(path, cb)      { if (!db) return null; const r = db.ref(path); r.on('value', cb); return r; }
+
+// ═══════════════════════════════════════════════════════════
+//  ДАННЫЕ — добавляй новые раунды сюда!
+//
+//  Структура:
+//  QUIZZES = {
+//    [id]: {
+//      name: "...", emoji: "...",
+//      stages: {
+//        [stageId]: {
+//          name: "Раунд X",
+//          subtitle: "N вопросов · 20 сек",
+//          questions: [
+//            { anime: "...", q: "...", answer: "..." }
+//          ]
+//        }
+//        // Добавить раунд: ,round2: { ... }
+//      }
+//    }
+//    // Добавить ведущего: ,petya: { ... }
+//  }
+// ═══════════════════════════════════════════════════════════
+const QUIZZES = {
+  senya: {
+    name: "Квиз Сени",
+    emoji: "🎌",
+    stages: {
+      round1: {
+        name: "Раунд 1",
+        subtitle: "11 вопросов · 20 сек",
+        questions: [
+          {
+            anime: "🍃 Наруто",
+            q: "Как зовут Пэйна (Pain)\nего настоящим именем?",
+            answer: "Нагато (Nagato)"
+          },
+          {
+            anime: "⚔️ Атака Титанов",
+            q: "Как называется финальное событие,\nкогда Эрен поднимает миллионы\nКолоссальных Титанов за пределы стен?",
+            answer: "Грохот Земли (The Rumbling)"
+          },
+          {
+            anime: "✨ Фрирен",
+            q: "Кто является учителем самой Фрирен —\nвеликий маг, обучавший её сотни лет назад?",
+            answer: "Фламмэ (Flamme)"
+          },
+          {
+            anime: "🎯 Хантер × Хантер",
+            q: "Муж известной мангаки Наоко Такэути\n(«Сейлор Мун») написал культовую мангу,\nпо которой сняли 2 аниме-адаптации.\nЧто за манга?",
+            answer: "Хантер × Хантер (Hunter x Hunter)"
+          },
+          {
+            anime: "🍺 Grand Blue",
+            q: "В каком аниме молодые люди превратили\nтусовку в ритуал — раздеваться догола\nи устраивать попойки на каждом собрании?",
+            answer: "Grand Blue (Grand Blue Dreaming)"
+          },
+          {
+            anime: "👊 Кэнити",
+            q: "Как называется додзё, где тренируется\nКэнити Сирахама под руководством\nшести мастеров боевых искусств?",
+            answer: "Рёзанпаку (Ryozanpaku)"
+          },
+          {
+            anime: "🌑 D.Gray-man",
+            q: "Как зовут главного героя D.Gray-man —\nэкзорциста с проклятым левым глазом\nи оружием Crown Clown?",
+            answer: "Аллен Уокер (Allen Walker)"
+          },
+          {
+            anime: "⚗️ ???",
+            q: "В этом аниме главный герой\nищет артефакт, который в «Гарри Поттере»\nпытался заполучить Волан-де-Морт.\nЧто за аниме?",
+            answer: "Стальной Алхимик (Fullmetal Alchemist)"
+          },
+          {
+            anime: "☀️ Блич",
+            q: "Сколько рас объединяет в себе\nИчиго Куросаки?\nПеречислите их.",
+            answer: "4 расы: Человек, Синигами, Пустой и Квинси"
+          },
+          {
+            anime: "💎 ДжоДжо",
+            q: "Как называется финальный Стэнд\nсвященника Энрико Пуччи в JoJo Part 6,\nспособный перезапустить вселенную?",
+            answer: "Made in Heaven"
+          },
+          {
+            anime: "📖 Секретный вопрос",
+            q: "Назовите пропущенное слово из цитаты книги Клауса Поппе, совпадающее с названием аниме:\n\n«Дивись на меня! Дивись на меня!\nТо ______ во мне растёт огромный!\nКусь-кусь, чавк-чавк, грызь-грызь, хрум!»",
+            answer: "Монстр (Monster)"
+          }
+        ]
+      }
+      // ,round2: { name: "Раунд 2", subtitle: "10 вопросов · 20 сек", questions: [] }
+    }
+  }
+  // ,petya: { name: "Квиз Пети", emoji: "🔥", stages: { round1: { ... } } }
+};
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+const CIRC = 289.02; // 2π × 46
+const TIME = 20;
+
+let activeQuizId    = null;
+let activeStageId   = null;
+let currentQ        = 0;
+let raf             = null;
+let startMs         = null;
+let activeQuestions = [];
+let playersRef      = null;
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+function init() {
+  // Build home host cards
+  const grid = document.getElementById('hostGrid');
+  grid.innerHTML = Object.entries(QUIZZES).map(([id, quiz]) => {
+    const n = Object.keys(quiz.stages).length;
+    return `
+      <div class="host-card" onclick="selectHost('${id}')">
+        <div class="host-emoji">${quiz.emoji}</div>
+        <div class="host-name">${quiz.name}</div>
+        <div class="host-sub">${n} раунд${n===1?'':n<5?'а':'ов'}</div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function selectHost(quizId) {
+  activeQuizId = quizId;
+  const quiz = QUIZZES[quizId];
+  document.getElementById('stageScreenTitle').textContent = quiz.name;
+
+  // Build stage list
+  const grid = document.getElementById('stageGrid');
+  grid.innerHTML = Object.entries(quiz.stages).map(([id, stage]) => `
+    <div class="stage-card" onclick="startStage('${id}')">
+      <div><div class="stage-name">${stage.name}</div><div class="stage-meta">${stage.subtitle}</div></div>
+      <div class="stage-arrow">→</div>
+    </div>`).join('');
+
+  // Setup QR code & player URL
+  const playerUrl = new URL('player.html', window.location.href).href;
+  document.getElementById('mpUrl').textContent = playerUrl;
+
+  const qrBox = document.getElementById('qrBox');
+  qrBox.innerHTML = '';
+  try {
+    new QRCode(qrBox, {
+      text: playerUrl, width: 100, height: 100,
+      colorDark: '#1e1040', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    qrBox.innerHTML = '<div style="font-size:11px;color:#666;text-align:center;padding:8px;">QR<br>недоступен</div>';
+  }
+
+  // Listen for players
+  if (playersRef) playersRef.off();
+  playersRef = dbOn('players', snap => {
+    const players = snap.val() || {};
+    const names = Object.keys(players);
+    document.getElementById('mpCount').textContent = names.length;
+    const container = document.getElementById('mpPlayers');
+    if (names.length === 0) {
+      container.innerHTML = '<span class="mp-empty">Пока никого нет…</span>';
+    } else {
+      container.innerHTML = names.map(n =>
+        `<span class="player-chip">👤 ${players[n].name || n}</span>`
+      ).join('');
+    }
+  });
+
+  showScreen('stageScreen');
+}
+
+function goToStageScreen() {
+  if (activeQuizId) selectHost(activeQuizId);
+  else showScreen('homeScreen');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUIZ
+// ═══════════════════════════════════════════════════════════
+function startStage(stageId) {
+  activeStageId   = stageId;
+  activeQuestions = QUIZZES[activeQuizId].stages[stageId].questions;
+  currentQ = 0;
+
+  // Clear previous answers in Firebase
+  dbRemove('answers');
+  // Init session (lobby state, not started yet)
+  dbSet('session', {
+    active:          false,
+    quizId:          activeQuizId,
+    stageId:         stageId,
+    totalQuestions:  activeQuestions.length,
+    currentQ:        -1,
+    timePerQuestion: TIME,
+    startTime:       0,
+    questionText:    '',
+    animeName:       ''
+  });
+
+  showScreen('quizScreen');
+  renderQ();
+}
+
+function renderQ() {
+  const q     = activeQuestions[currentQ];
+  const total = activeQuestions.length;
+
+  document.getElementById('qCounter').textContent   = (currentQ + 1) + ' / ' + total;
+  document.getElementById('progFill').style.width   = (currentQ / total * 100) + '%';
+  document.getElementById('animeTag').textContent   = q.anime;
+  document.getElementById('qText').textContent      = q.q;
+  document.getElementById('btnBack').disabled       = (currentQ === 0);
+
+  // Reset timer UI
+  const ring = document.getElementById('tRing');
+  ring.style.strokeDashoffset = '0';
+  ring.style.stroke = '#8b5cf6';
+  document.getElementById('timerWrap').classList.remove('urgent');
+  document.getElementById('timerNum').textContent = TIME;
+
+  // Push to Firebase (activates player screens)
+  const now = Date.now();
+  dbUpdate('session', {
+    active:         true,
+    currentQ:       currentQ,
+    totalQuestions: total,
+    questionText:   q.q,
+    animeName:      q.anime,
+    startTime:      now,
+    timePerQuestion: TIME
+  });
+
+  stopTimer();
+  startTimer();
+}
+
+function goBackQ() {
+  if (currentQ === 0) return;
+  stopTimer();
+  currentQ--;
+  const s = document.getElementById('quizScreen');
+  s.classList.remove('active');
+  setTimeout(() => { renderQ(); s.classList.add('active'); }, 120);
+}
+
+function skipQuestion() {
+  stopTimer();
+  flash();
+  setTimeout(() => advance(), 300);
+}
+
+function advance() {
+  stopTimer();
+  currentQ++;
+  if (currentQ >= activeQuestions.length) {
+    // Quiz done — signal players
+    dbUpdate('session', { active: false, currentQ: -2 });
+    const stageName = QUIZZES[activeQuizId].stages[activeStageId].name;
+    document.getElementById('endTitle').textContent = stageName + ' завершён!';
+    showScreen('endScreen');
+  } else {
+    const s = document.getElementById('quizScreen');
+    s.classList.remove('active');
+    setTimeout(() => { renderQ(); s.classList.add('active'); }, 120);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════════════════════
+function stopTimer() {
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
+}
+
+function startTimer() {
+  startMs = performance.now();
+  tick();
+}
+
+function tick() {
+  const elapsed = performance.now() - startMs;
+  const left    = Math.max(0, TIME * 1000 - elapsed);
+  const frac    = left / (TIME * 1000);
+  const secs    = Math.ceil(left / 1000);
+
+  const ring = document.getElementById('tRing');
+  ring.style.strokeDashoffset = CIRC * (1 - frac);
+  ring.style.stroke = frac > .5 ? '#8b5cf6' : frac > .25 ? '#f97316' : '#ef4444';
+  document.getElementById('timerNum').textContent = secs;
+  document.getElementById('timerWrap').classList.toggle('urgent', frac <= .25);
+
+  if (left <= 0) { flash(); setTimeout(() => advance(), 520); return; }
+  raf = requestAnimationFrame(tick);
+}
+
+function flash() {
+  const el = document.getElementById('flashEl');
+  el.style.display   = 'block';
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
+  setTimeout(() => { el.style.display = 'none'; }, 450);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SCORE TABLE
+// ═══════════════════════════════════════════════════════════
+function loadScoreTable() {
+  showScreen('tableScreen');
+  document.getElementById('tableMeta').textContent = 'Загружаем ответы…';
+  document.getElementById('scoreTable').innerHTML  = '';
+
+  dbOnce('answers', snap => {
+    const answers   = snap.val() || {};
+    const questions = activeQuestions;
+    const playerNames = Object.keys(answers);
+
+    if (playerNames.length === 0) {
+      document.getElementById('tableMeta').textContent = 'Никто не ответил на вопросы';
+      return;
+    }
+
+    document.getElementById('tableMeta').textContent =
+      playerNames.length + ' игрок(ов) · ' + questions.length + ' вопросов';
+
+    // Header row: Игрок | Q1 | Q2 | ... | Qn
+    const th = '<tr>' +
+      '<th>Игрок</th>' +
+      questions.map((q, i) =>
+        `<th class="q-header">В${i+1}<br><span style="color:var(--muted);font-weight:400">${q.anime.replace(/^\S+\s/, '')}</span></th>`
+      ).join('') +
+      '</tr>';
+
+    // Correct answers row
+    const cr = '<tr class="correct-row">' +
+      '<td class="player-cell">✓ Правильные</td>' +
+      questions.map(q => `<td class="answer-cell">${q.answer}</td>`).join('') +
+      '</tr>';
+
+    // Player rows
+    const rows = playerNames.map(pKey => {
+      const pAnswers = answers[pKey] || {};
+      // Try to get display name from players node
+      return `<tr>
+        <td class="player-cell">${pKey}</td>
+        ${questions.map((_, i) => {
+          const a = pAnswers[i] || pAnswers[String(i)];
+          return a
+            ? `<td class="answer-cell">${escHtml(a)}</td>`
+            : `<td class="empty-cell">—</td>`;
+        }).join('')}
+      </tr>`;
+    }).join('');
+
+    document.getElementById('scoreTable').innerHTML = '<thead>' + th + cr + '</thead><tbody>' + rows + '</tbody>';
+  });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANSWERS (правильные)
+// ═══════════════════════════════════════════════════════════
+function openAnswersFromEnd() {
+  openAnswersScreen(activeQuizId, activeStageId);
+}
+
+function openAnswersScreen(quizId, stageId) {
+  if (!quizId)   quizId   = Object.keys(QUIZZES)[0];
+  if (!stageId)  stageId  = Object.keys(QUIZZES[quizId].stages)[0];
+  buildAnswersTabs(quizId, stageId);
+  buildAnswersGrid(quizId, stageId);
+  showScreen('answersScreen');
+}
+
+function buildAnswersTabs(quizId, stageId) {
+  document.getElementById('answersStageTabs').innerHTML =
+    Object.entries(QUIZZES[quizId].stages).map(([id, stage]) => `
+      <button class="stage-tab ${id === stageId ? 'active' : ''}"
+              onclick="switchAnswersStage('${quizId}','${id}')">
+        ${stage.name}
+      </button>`).join('');
+}
+
+function switchAnswersStage(quizId, stageId) {
+  buildAnswersTabs(quizId, stageId);
+  buildAnswersGrid(quizId, stageId);
+}
+
+function buildAnswersGrid(quizId, stageId) {
+  document.getElementById('answersGrid').innerHTML =
+    QUIZZES[quizId].stages[stageId].questions.map((q, i) => `
+      <div class="ans-card">
+        <div class="ans-top">
+          <div class="ans-num">${String(i+1).padStart(2,'0')}</div>
+          <div class="ans-anime">${q.anime}</div>
+        </div>
+        <div class="ans-q">${q.q}</div>
+        <div class="ans-answer">✓ ${q.answer}</div>
+      </div>`).join('');
+}
+
+// ═════════════�
