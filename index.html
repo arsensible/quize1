@@ -903,4 +903,15 @@ function buildAnswersGrid(quizId, stageId) {
       </div>`).join('');
 }
 
-// ═════════════�
+// KEYBOARD
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('quizScreen').classList.contains('active')) return;
+  if (e.code === 'Space' || e.code === 'ArrowRight') { e.preventDefault(); skipQuestion(); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); goBackQ(); }
+});
+
+// Start
+init();
+</script>
+</body>
+</html>
